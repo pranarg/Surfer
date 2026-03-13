@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SURFER 🏄</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a1a;
+    --card: #13132b;
+    --border: #252545;
+    --yellow: #FFE600;
+    --pink: #FF2D87;
+    --cyan: #00F0FF;
+    --green: #39FF14;
+    --purple: #9B5DE5;
+    --white: #F0F0FF;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* scanlines */
+  body::after {
+    content:'';
+    position:fixed;
+    inset:0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+    pointer-events:none;
+    z-index:9999;
+  }
+
+  /* HEADER */
+  header {
+    flex-shrink: 0;
+    background: linear-gradient(90deg,#0a0a1a,#1a0833,#0a0a1a);
+    border-bottom: 3px solid var(--pink);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 30px rgba(255,45,135,0.25);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(0.55rem, 1.8vw, 0.9rem);
+    color: var(--yellow);
+    text-shadow: 0 0 10px var(--yellow), 2px 2px 0 var(--pink);
+    white-space: nowrap;
+    animation: flicker 5s infinite;
+  }
+  @keyframes flicker { 0%,94%,100%{opacity:1} 95%{opacity:0.3} 97%{opacity:0.8} }
+
+  .nav-btns { display:flex; gap:5px; flex-shrink:0; }
+  .nav-btn {
+    width:32px; height:32px;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    color: var(--white);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .nav-btn:hover { background:rgba(0,240,255,0.1); border-color:var(--cyan); }
+  .nav-btn:disabled { opacity:0.25; cursor:not-allowed; }
+
+  .bar {
+    flex:1;
+    display:flex;
+    align-items:center;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid var(--cyan);
+    border-radius: 50px;
+    padding: 5px 16px;
+    gap: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .bar:focus-within { border-color:var(--yellow); box-shadow:0 0 12px rgba(255,230,0,0.25); }
+
+  #urlInput {
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    font-family:'Nunito',sans-serif;
+    font-size:0.9rem;
+    font-weight:700;
+    color:var(--white);
+    caret-color:var(--cyan);
+    min-width:0;
+  }
+  #urlInput::placeholder { color:rgba(255,255,255,0.3); font-weight:400; }
+
+  .go-btn {
+    font-family:'Press Start 2P',monospace;
+    font-size:0.55rem;
+    padding:8px 16px;
+    background:linear-gradient(135deg,var(--pink),var(--purple));
+    color:white;
+    border:none;
+    border-radius:50px;
+    cursor:pointer;
+    box-shadow:0 4px 15px rgba(255,45,135,0.4);
+    transition:transform 0.1s, box-shadow 0.1s;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .go-btn:hover { transform:scale(1.05) translateY(-1px); box-shadow:0 6px 20px rgba(255,45,135,0.6); }
+  .go-btn:active { transform:scale(0.97); }
+
+  .fs-btn {
+    flex-shrink:0;
+    width:32px; height:32px;
+    background:rgba(255,255,255,0.06);
+    border:2px solid var(--border);
+    border-radius:8px;
+    color:var(--white);
+    font-size:1rem;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.15s, border-color 0.15s;
+  }
+  .fs-btn:hover { background:rgba(0,240,255,0.1); border-color:var(--cyan); }
+
+  /* TABS */
+  .tabs {
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:5px 12px 0;
+    background:rgba(10,10,26,0.8);
+    overflow-x:auto;
+    scrollbar-width:none;
+    border-bottom: 1px solid var(--border);
+  }
+  .tabs::-webkit-scrollbar { display:none; }
+
+  .tab {
+    display:flex; align-items:center; gap:6px;
+    padding:5px 12px;
+    background:rgba(255,255,255,0.05);
+    border:2px solid transparent;
+    border-bottom:none;
+    border-radius:8px 8px 0 0;
+    cursor:pointer;
+    font-size:0.75rem;
+    font-weight:700;
+    color:rgba(255,255,255,0.45);
+    white-space:nowrap;
+    max-width:160px;
+    transition:background 0.15s, color 0.15s;
+  }
+  .tab:hover { background:rgba(255,255,255,0.09); color:rgba(255,255,255,0.8); }
+  .tab.active { background:rgba(0,240,255,0.1); border-color:var(--cyan); color:var(--cyan); }
+  .tab-title { overflow:hidden; text-overflow:ellipsis; max-width:100px; }
+  .tab-x {
+    font-size:0.7rem; opacity:0.45;
+    padding:1px 3px; border-radius:3px;
+    transition:opacity 0.1s, background 0.1s;
+  }
+  .tab-x:hover { opacity:1; background:rgba(255,45,135,0.3); }
+  .new-tab {
+    flex-shrink:0;
+    width:26px; height:26px;
+    background:rgba(255,255,255,0.06);
+    border:2px solid rgba(255,255,255,0.12);
+    border-radius:50%;
+    color:white;
+    font-size:1rem;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1;
+    transition:background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .new-tab:hover { background:rgba(255,230,0,0.12); border-color:var(--yellow); color:var(--yellow); }
+
+  /* MAIN */
+  main {
+    flex:1;
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* HOME */
+  .home {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:28px; padding:20px;
+    overflow-y:auto;
+  }
+  .home.hidden { display:none; }
+
+  .hero h1 {
+    font-family:'Press Start 2P',monospace;
+    font-size:clamp(1.2rem,4vw,2.5rem);
+    color:var(--yellow);
+    text-shadow:0 0 20px var(--yellow),4px 4px 0 var(--pink);
+    text-align:center;
+    animation:float 3s ease-in-out infinite;
+    line-height:1.4;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .hero p { text-align:center; color:rgba(255,255,255,0.4); font-weight:700; margin-top:8px; font-size:0.9rem; }
+
+  .quick-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:10px;
+    width:100%;
+    max-width:700px;
+  }
+
+  .quick-btn {
+    padding:12px 8px;
+    border-radius:12px;
+    border:2px solid rgba(255,255,255,0.1);
+    background:var(--card);
+    color:var(--white);
+    font-weight:900;
+    font-size:0.82rem;
+    cursor:pointer;
+    text-align:center;
+    transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .quick-btn:hover { transform:translateY(-3px) scale(1.03); }
+  .quick-btn .qb-icon { font-size:1.8rem; }
+  .quick-btn .qb-label { font-size:0.72rem; opacity:0.8; }
+
+  .qb-pink { border-color:var(--pink); box-shadow:0 0 0 0 rgba(255,45,135,0); }
+  .qb-pink:hover { border-color:var(--pink); box-shadow:0 6px 20px rgba(255,45,135,0.35); }
+  .qb-cyan { border-color:var(--cyan); }
+  .qb-cyan:hover { box-shadow:0 6px 20px rgba(0,240,255,0.3); }
+  .qb-yellow { border-color:var(--yellow); }
+  .qb-yellow:hover { box-shadow:0 6px 20px rgba(255,230,0,0.3); }
+  .qb-green { border-color:var(--green); }
+  .qb-green:hover { box-shadow:0 6px 20px rgba(57,255,20,0.3); }
+  .qb-purple { border-color:var(--purple); }
+  .qb-purple:hover { box-shadow:0 6px 20px rgba(155,93,229,0.3); }
+
+  .proxy-note {
+    font-size:0.72rem;
+    color:rgba(255,255,255,0.25);
+    text-align:center;
+    max-width:500px;
+    line-height:1.6;
+  }
+  .proxy-note span { color:var(--cyan); font-weight:900; }
+
+  /* IFRAMES */
+  .frame-wrap {
+    position:absolute; inset:0;
+    display:none;
+  }
+  .frame-wrap.active { display:block; }
+  .frame-wrap iframe {
+    width:100%; height:100%;
+    border:none;
+    background:#fff;
+  }
+
+  /* BLOCKED */
+  .blocked {
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:16px; text-align:center; padding:30px;
+    background:var(--bg);
+  }
+  .blocked.active { display:flex; }
+  .blocked h2 {
+    font-family:'Press Start 2P',monospace;
+    font-size:1rem;
+    color:var(--pink);
+    text-shadow:0 0 12px var(--pink);
+  }
+  .blocked p { color:rgba(255,255,255,0.45); max-width:380px; line-height:1.7; }
+  .blocked-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .btn-newtab {
+    font-family:'Press Start 2P',monospace;
+    font-size:0.55rem;
+    padding:11px 18px;
+    background:linear-gradient(135deg,var(--green),var(--cyan));
+    color:#000;
+    border:none; border-radius:8px; cursor:pointer;
+    transition:transform 0.1s;
+  }
+  .btn-newtab:hover { transform:scale(1.05); }
+  .btn-retry {
+    font-family:'Press Start 2P',monospace;
+    font-size:0.55rem;
+    padding:11px 18px;
+    background:rgba(255,255,255,0.07);
+    color:var(--white);
+    border:2px solid var(--border);
+    border-radius:8px; cursor:pointer;
+    transition:background 0.15s;
+  }
+  .btn-retry:hover { background:rgba(255,255,255,0.12); }
+
+  /* STATUS */
+  .status {
+    flex-shrink:0;
+    height:20px;
+    background:rgba(10,10,26,0.95);
+    border-top:1px solid rgba(255,255,255,0.05);
+    padding:0 14px;
+    display:flex; align-items:center; gap:8px;
+    font-size:0.68rem;
+    color:rgba(255,255,255,0.3);
+  }
+  .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.15); flex-shrink:0; }
+  .dot.loading { background:var(--yellow); animation:pulse 0.8s ease-in-out infinite; }
+  .dot.done { background:var(--green); }
+  .dot.error { background:var(--pink); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.2} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🏄 SURFER</div>
+  <div class="nav-btns">
+    <button class="nav-btn" id="backBtn" disabled>←</button>
+    <button class="nav-btn" id="fwdBtn" disabled>→</button>
+    <button class="nav-btn" id="reloadBtn">↻</button>
+  </div>
+  <div class="bar">
+    <span style="opacity:0.5;font-size:1rem">🌐</span>
+    <input id="urlInput" type="text" placeholder="Type any website or game URL..." autocomplete="off" spellcheck="false">
+  </div>
+  <button class="go-btn" id="goBtn">GO 🚀</button>
+  <button class="fs-btn" id="fsBtn" title="Fullscreen">⛶</button>
+</header>
+
+<div class="tabs" id="tabsRow">
+  <button class="new-tab" id="newTabBtn">+</button>
+</div>
+
+<main id="main">
+  <div class="home" id="homeScreen">
+    <div class="hero">
+      <h1>🏄 SURFER</h1>
+      <p>Your personal browser. Type any URL or pick a site below!</p>
+    </div>
+
+    <div class="quick-grid">
+      <button class="quick-btn qb-pink" data-url="https://poki.com">
+        <span class="qb-icon">🎮</span>
+        <span>Poki</span>
+        <span class="qb-label">Games</span>
+      </button>
+      <button class="quick-btn qb-cyan" data-url="https://crazygames.com">
+        <span class="qb-icon">🕹️</span>
+        <span>CrazyGames</span>
+        <span class="qb-label">Games</span>
+      </button>
+      <button class="quick-btn qb-yellow" data-url="https://coolmathgames.com">
+        <span class="qb-icon">🧮</span>
+        <span>CoolMath</span>
+        <span class="qb-label">Games</span>
+      </button>
+      <button class="quick-btn qb-green" data-url="https://itch.io">
+        <span class="qb-icon">👾</span>
+        <span>itch.io</span>
+        <span class="qb-label">Indie Games</span>
+      </button>
+      <button class="quick-btn qb-purple" data-url="https://slither.io">
+        <span class="qb-icon">🐍</span>
+        <span>Slither.io</span>
+        <span class="qb-label">Multiplayer</span>
+      </button>
+      <button class="quick-btn qb-pink" data-url="https://krunker.io">
+        <span class="qb-icon">🎯</span>
+        <span>Krunker</span>
+        <span class="qb-label">FPS</span>
+      </button>
+      <button class="quick-btn qb-cyan" data-url="https://skribbl.io">
+        <span class="qb-icon">✏️</span>
+        <span>Skribbl</span>
+        <span class="qb-label">Drawing</span>
+      </button>
+      <button class="quick-btn qb-yellow" data-url="https://wikipedia.org">
+        <span class="qb-icon">📖</span>
+        <span>Wikipedia</span>
+        <span class="qb-label">Info</span>
+      </button>
+      <button class="quick-btn qb-green" data-url="https://news.ycombinator.com">
+        <span class="qb-icon">🤖</span>
+        <span>Hacker News</span>
+        <span class="qb-label">Tech News</span>
+      </button>
+      <button class="quick-btn qb-purple" data-url="https://neal.fun">
+        <span class="qb-icon">🎲</span>
+        <span>Neal.fun</span>
+        <span class="qb-label">Fun Stuff</span>
+      </button>
+    </div>
+
+    <p class="proxy-note">
+      ⚠️ Some sites block embedding — if one doesn't load, hit <span>Open in New Tab</span> instead.<br>
+      For best results, host this on <span>GitHub Pages</span>!
+    </p>
+  </div>
+</main>
+
+<div class="status">
+  <div class="dot" id="dot"></div>
+  <span id="statusText">Ready</span>
+</div>
+
+<script>
+let tabs = [], activeId = null, counter = 0;
+let blockedUrl = '';
+
+const tabsRow = document.getElementById('tabsRow');
+const newTabBtn = document.getElementById('newTabBtn');
+const mainEl = document.getElementById('main');
+const homeScreen = document.getElementById('homeScreen');
+const urlInput = document.getElementById('urlInput');
+const goBtn = document.getElementById('goBtn');
+const backBtn = document.getElementById('backBtn');
+const fwdBtn = document.getElementById('fwdBtn');
+const reloadBtn = document.getElementById('reloadBtn');
+const fsBtn = document.getElementById('fsBtn');
+const dot = document.getElementById('dot');
+const statusText = document.getElementById('statusText');
+
+function setStatus(state, text) {
+  dot.className = 'dot ' + (state||'');
+  statusText.textContent = text;
+}
+
+function normalizeUrl(raw) {
+  raw = raw.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^[\w-]+(\.[\w-]+)+/.test(raw)) return 'https://' + raw;
+  return 'https://www.google.com/search?q=' + encodeURIComponent(raw);
+}
+
+function makeBlockedScreen(id) {
+  const d = document.createElement('div');
+  d.className = 'blocked';
+  d.dataset.id = id;
+  d.innerHTML = `
+    <h2>⛔ BLOCKED!</h2>
+    <p>This site won't load inside Surfer because it blocks embedding. You can still open it in a new tab!</p>
+    <div class="blocked-btns">
+      <button class="btn-newtab" onclick="window.open(blockedUrl,'_blank')">OPEN IN NEW TAB ↗</button>
+      <button class="btn-retry" onclick="retryWithProxy()">TRY PROXY 🔄</button>
+      <button class="btn-retry" onclick="closeBlocked(${id})">← GO BACK</button>
+    </div>
+  `;
+  return d;
+}
+
+function retryWithProxy() {
+  const tab = tabs.find(t => t.id === activeId);
+  if (!tab || !tab.url) return;
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(tab.url);
+  tab.iframe.src = proxyUrl;
+  setStatus('loading', 'Trying proxy...');
+  hideBlocked();
+}
+
+function hideBlocked() {
+  mainEl.querySelectorAll('.blocked').forEach(b => b.classList.remove('active'));
+}
+
+function closeBlocked(id) {
+  hideBlocked();
+  const tab = tabs.find(t => t.id === id);
+  if (tab) {
+    tab.url = null;
+    tab.iframe.src = 'about:blank';
+    urlInput.value = '';
+    homeScreen.classList.remove('hidden');
+  }
+}
+
+function createTab(url) {
+  const id = ++counter;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'frame-wrap';
+  wrap.dataset.id = id;
+
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-downloads');
+  iframe.setAttribute('allow', 'fullscreen; autoplay');
+  wrap.appendChild(iframe);
+  mainEl.appendChild(wrap);
+
+  const blocked = makeBlockedScreen(id);
+  mainEl.appendChild(blocked);
+
+  const tab = { id, url: null, wrap, iframe, blocked, title: 'New Tab', history: [], historyIdx: -1 };
+  tabs.push(tab);
+
+  if (url) loadInTab(tab, url);
+  renderTabs();
+  switchTab(id);
+  return tab;
+}
+
+function loadInTab(tab, url) {
+  tab.url = url;
+  blockedUrl = url;
+  homeScreen.classList.add('hidden');
+  tab.blocked.classList.remove('active');
+  setStatus('loading', 'Loading...');
+
+  let didLoad = false;
+  tab.iframe.onload = () => {
+    didLoad = true;
+    setStatus('done', 'Done — ' + url.replace(/^https?:\/\//,'').split('/')[0]);
+    try {
+      const t = url.replace(/^https?:\/\//,'').split('/')[0];
+      tab.title = t;
+    } catch(e) {}
+    renderTabs();
+  };
+
+  tab.iframe.src = url;
+
+  // check if blocked
+  setTimeout(() => {
+    if (!didLoad) {
+      setStatus('error', 'Blocked by site');
+      tab.blocked.classList.add('active');
+      blockedUrl = url;
+    }
+  }, 5000);
+
+  // push history
+  if (tab.historyIdx < tab.history.length - 1) tab.history = tab.history.slice(0, tab.historyIdx + 1);
+  tab.history.push(url);
+  tab.historyIdx = tab.history.length - 1;
+  urlInput.value = url;
+  updateNav(tab);
+}
+
+function switchTab(id) {
+  activeId = id;
+  tabs.forEach(t => {
+    t.wrap.classList.toggle('active', t.id === id);
+  });
+  const tab = tabs.find(t => t.id === id);
+  if (tab) {
+    urlInput.value = tab.url || '';
+    updateNav(tab);
+    if (!tab.url) homeScreen.classList.remove('hidden');
+    else homeScreen.classList.add('hidden');
+    if (tab.url) blockedUrl = tab.url;
+  }
+  renderTabs();
+}
+
+function closeTab(id) {
+  const idx = tabs.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  tabs[idx].wrap.remove();
+  tabs[idx].blocked.remove();
+  tabs.splice(idx, 1);
+  if (!tabs.length) createTab(null);
+  else switchTab(tabs[Math.min(idx, tabs.length-1)].id);
+  renderTabs();
+}
+
+function renderTabs() {
+  document.querySelectorAll('.tab').forEach(e => e.remove());
+  tabs.forEach(tab => {
+    const el = document.createElement('div');
+    el.className = 'tab' + (tab.id === activeId ? ' active' : '');
+    el.innerHTML = `<span class="tab-title">${tab.title}</span><span class="tab-x" data-close="${tab.id}">✕</span>`;
+    el.addEventListener('click', e => {
+      if (e.target.dataset.close) { closeTab(+e.target.dataset.close); return; }
+      switchTab(tab.id);
+    });
+    tabsRow.insertBefore(el, newTabBtn);
+  });
+}
+
+function updateNav(tab) {
+  backBtn.disabled = tab.historyIdx <= 0;
+  fwdBtn.disabled = tab.historyIdx >= tab.history.length - 1;
+}
+
+function navigate() {
+  const url = normalizeUrl(urlInput.value);
+  if (!url) return;
+  const tab = tabs.find(t => t.id === activeId);
+  if (tab) loadInTab(tab, url);
+}
+
+goBtn.addEventListener('click', navigate);
+urlInput.addEventListener('keydown', e => { if (e.key==='Enter') navigate(); });
+
+backBtn.addEventListener('click', () => {
+  const tab = tabs.find(t=>t.id===activeId);
+  if (!tab||tab.historyIdx<=0) return;
+  tab.historyIdx--;
+  const url = tab.history[tab.historyIdx];
+  tab.url=url; tab.iframe.src=url; urlInput.value=url; updateNav(tab);
+});
+fwdBtn.addEventListener('click', () => {
+  const tab = tabs.find(t=>t.id===activeId);
+  if (!tab||tab.historyIdx>=tab.history.length-1) return;
+  tab.historyIdx++;
+  const url = tab.history[tab.historyIdx];
+  tab.url=url; tab.iframe.src=url; urlInput.value=url; updateNav(tab);
+});
+reloadBtn.addEventListener('click', () => {
+  const tab = tabs.find(t=>t.id===activeId);
+  if (tab&&tab.url) { setStatus('loading','Reloading...'); tab.iframe.src=tab.iframe.src; }
+});
+newTabBtn.addEventListener('click', () => createTab(null));
+fsBtn.addEventListener('click', () => {
+  const tab = tabs.find(t=>t.id===activeId);
+  if (tab&&tab.iframe.requestFullscreen) tab.iframe.requestFullscreen();
+});
+
+document.querySelectorAll('.quick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const url = btn.dataset.url;
+    const tab = tabs.find(t=>t.id===activeId);
+    if (tab) loadInTab(tab, url);
+  });
+});
+
+// init
+createTab(null);
+</script>
+</body>
+</html>
