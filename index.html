@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -362,52 +363,52 @@
     <div class="quick-grid">
       <button class="quick-btn qb-pink" data-url="https://poki.com">
         <span class="qb-icon">🎮</span>
-        <span>Poki</span>
+        <span>Poki ✅</span>
         <span class="qb-label">Games</span>
       </button>
       <button class="quick-btn qb-cyan" data-url="https://crazygames.com">
         <span class="qb-icon">🕹️</span>
-        <span>CrazyGames</span>
+        <span>CrazyGames ✅</span>
         <span class="qb-label">Games</span>
       </button>
       <button class="quick-btn qb-yellow" data-url="https://coolmathgames.com">
         <span class="qb-icon">🧮</span>
-        <span>CoolMath</span>
+        <span>CoolMath ✅</span>
         <span class="qb-label">Games</span>
       </button>
       <button class="quick-btn qb-green" data-url="https://itch.io">
         <span class="qb-icon">👾</span>
-        <span>itch.io</span>
+        <span>itch.io ✅</span>
         <span class="qb-label">Indie Games</span>
       </button>
       <button class="quick-btn qb-purple" data-url="https://slither.io">
         <span class="qb-icon">🐍</span>
-        <span>Slither.io</span>
+        <span>Slither.io ✅</span>
         <span class="qb-label">Multiplayer</span>
       </button>
       <button class="quick-btn qb-pink" data-url="https://krunker.io">
         <span class="qb-icon">🎯</span>
-        <span>Krunker</span>
+        <span>Krunker ✅</span>
         <span class="qb-label">FPS</span>
       </button>
       <button class="quick-btn qb-cyan" data-url="https://skribbl.io">
         <span class="qb-icon">✏️</span>
-        <span>Skribbl</span>
+        <span>Skribbl ✅</span>
         <span class="qb-label">Drawing</span>
       </button>
-      <button class="quick-btn qb-yellow" data-url="https://wikipedia.org">
-        <span class="qb-icon">📖</span>
-        <span>Wikipedia</span>
-        <span class="qb-label">Info</span>
+      <button class="quick-btn qb-yellow" data-url="https://youtube.com">
+        <span class="qb-icon">▶️</span>
+        <span>YouTube ❌</span>
+        <span class="qb-label">Blocked</span>
       </button>
-      <button class="quick-btn qb-green" data-url="https://news.ycombinator.com">
-        <span class="qb-icon">🤖</span>
-        <span>Hacker News</span>
-        <span class="qb-label">Tech News</span>
+      <button class="quick-btn qb-green" data-url="https://reddit.com">
+        <span class="qb-icon">👽</span>
+        <span>Reddit ❌</span>
+        <span class="qb-label">Blocked</span>
       </button>
       <button class="quick-btn qb-purple" data-url="https://neal.fun">
         <span class="qb-icon">🎲</span>
-        <span>Neal.fun</span>
+        <span>Neal.fun ✅</span>
         <span class="qb-label">Fun Stuff</span>
       </button>
     </div>
@@ -427,6 +428,27 @@
 <script>
 let tabs = [], activeId = null, counter = 0;
 let blockedUrl = '';
+
+// Sites known to block embedding
+const BLOCKED_SITES = [
+  'youtube.com', 'youtu.be',
+  'google.com', 'google.co',
+  'twitter.com', 'x.com',
+  'facebook.com', 'instagram.com',
+  'tiktok.com', 'netflix.com',
+  'twitch.tv', 'reddit.com',
+  'discord.com', 'roblox.com',
+  'spotify.com', 'amazon.com',
+  'github.com', 'sites.google.com',
+  'classroom.google.com',
+];
+
+function isKnownBlocked(url) {
+  try {
+    const host = new URL(url).hostname.replace('www.','');
+    return BLOCKED_SITES.some(b => host.includes(b));
+  } catch { return false; }
+}
 
 const tabsRow = document.getElementById('tabsRow');
 const newTabBtn = document.getElementById('newTabBtn');
@@ -524,6 +546,15 @@ function loadInTab(tab, url) {
   blockedUrl = url;
   homeScreen.classList.add('hidden');
   tab.blocked.classList.remove('active');
+
+  // Instantly show blocked message for known sites
+  if (isKnownBlocked(url)) {
+    setStatus('error', 'This site cannot be embedded');
+    tab.blocked.querySelector('p').textContent = '⚠️ This is a well-known site that blocks embedding on purpose (like YouTube, Google, Reddit etc). It will never load inside Surfer — open it in a new tab instead!';
+    tab.blocked.classList.add('active');
+    return;
+  }
+
   setStatus('loading', 'Loading...');
 
   let didLoad = false;
